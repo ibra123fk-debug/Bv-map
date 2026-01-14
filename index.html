@@ -1,9 +1,161 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Bv Map</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BV - Africa & Middle East Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bv-navy: #002B49; --bv-red: #E30613; --bv-blue: #0072CE; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fdfdfd; color: #1a1a1a; margin: 0; }
+        .glass-panel { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.04); }
+        .region-path { transition: all 0.4s ease; fill: #e2e8f0; stroke: #fff; stroke-width: 1.5; cursor: pointer; }
+        .region-path:hover { fill: #cbd5e1; }
+        .region-path.active { fill: var(--bv-navy); filter: drop-shadow(0 0 12px rgba(0,43,73,0.2)); }
+        .pulse { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+        .sidebar-in { animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
 </head>
-<body>
-It works
+<body class="h-screen flex flex-col overflow-hidden bg-[#F8FAFC]">
+
+    <!-- Top Navigation -->
+    <nav class="h-20 bg-white border-b border-gray-100 flex justify-between items-center px-8 z-50">
+        <div class="flex items-center gap-4">
+            <div class="bg-[#E30613] text-white px-3 py-1 font-extrabold text-xl rounded-sm">BV</div>
+            <div class="h-6 w-[1px] bg-gray-200"></div>
+            <div>
+                <h1 class="text-sm font-black text-[#002B49] tracking-tighter uppercase">Bureau Veritas</h1>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">AME Operational Map 2026</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-[10px] font-bold text-green-500 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 pulse"></span> LIVE SYSTEM
+            </span>
+        </div>
+    </nav>
+
+    <main class="flex-1 flex overflow-hidden">
+        <!-- Map View -->
+        <div class="flex-[1.5] relative flex items-center justify-center p-8">
+            <svg viewBox="0 0 800 600" class="w-full h-full max-w-4xl drop-shadow-xl">
+                <path d="M320,100 C300,80 450,50 500,80 C550,110 580,150 560,250 C540,350 480,550 400,580 C320,550 250,500 220,400 C190,300 150,200 200,120 C250,80 300,100 320,100" fill="#EDF2F7" stroke="#CBD5E1" stroke-width="1"/>
+                
+                <g onclick="updateInfo('me')" class="group">
+                    <path id="path-me" d="M510,80 L610,50 L680,110 L640,190 L530,160 Z" class="region-path"/>
+                    <circle cx="590" cy="110" r="5" fill="#E30613"/>
+                    <text x="605" y="115" class="text-[12px] font-bold fill-[#002B49] pointer-events-none">Middle East</text>
+                </g>
+
+                <g onclick="updateInfo('ecw')" class="group">
+                    <path id="path-ecw" d="M190,160 L360,160 L390,310 L240,310 L170,260 Z" class="region-path"/>
+                    <circle cx="280" cy="230" r="5" fill="#E30613"/>
+                    <text x="295" y="235" class="text-[12px] font-bold fill-[#002B49] pointer-events-none">EC&W District</text>
+                </g>
+
+                <g onclick="updateInfo('sa')" class="group">
+                    <path id="path-sa" d="M360,410 L510,410 L460,560 L350,560 Z" class="region-path"/>
+                    <circle cx="420" cy="470" r="5" fill="#E30613"/>
+                    <text x="435" y="475" class="text-[12px] font-bold fill-[#002B49] pointer-events-none">Southern Africa</text>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="flex-1 bg-white border-l border-gray-100 p-10 overflow-y-auto">
+            <div id="intro" class="h-full flex flex-col justify-center items-center text-center">
+                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#002B49" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h2 class="text-xl font-bold text-[#002B49]">Operational Dashboard</h2>
+                <p class="text-xs text-gray-400 mt-2">Click a region to view detailed management profiles</p>
+            </div>
+
+            <div id="content" class="hidden sidebar-in">
+                <div class="mb-8">
+                    <span id="tag" class="text-[9px] font-black text-[#E30613] uppercase tracking-[0.2em] bg-red-50 px-2 py-1 rounded">District Details</span>
+                    <h2 id="title" class="text-2xl font-black text-[#002B49] mt-3"></h2>
+                </div>
+
+                <div class="space-y-8">
+                    <section>
+                        <h3 class="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-4">Leadership</h3>
+                        <div id="execs" class="space-y-4"></div>
+                    </section>
+                    <section>
+                        <h3 class="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-4">Market Coverage</h3>
+                        <div id="countries" class="flex flex-wrap gap-2"></div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="h-10 bg-[#002B49] text-white flex justify-between items-center px-8 text-[8px] font-bold tracking-widest uppercase opacity-90">
+        <span>© 2026 Bureau Veritas Internal</span>
+        <div class="flex gap-4"><span>Quality</span><span>Health</span><span>Safety</span><span>Environment</span></div>
+    </footer>
+
+    <script>
+        const db = {
+            "me": {
+                title: "Middle East District",
+                tag: "Regional Strategic Hub",
+                countries: ["UAE", "Saudi Arabia", "Qatar", "Oman", "Kuwait", "Jordan", "Iraq", "Egypt"],
+                leads: [
+                    { n: "Marcel Hochar", t: "Managing Director - Middle East", d: "Regional HQ Dubai" },
+                    { n: "Sofien Masmoudi", t: "VP - Oil & Gas Market", d: "Strategic Lead" },
+                    { n: "Krupa Rahul", t: "Certification Manager", d: "Compliance & Standards" }
+                ]
+            },
+            "ecw": {
+                title: "EC&W District",
+                tag: "East, Central & West Africa",
+                countries: ["Nigeria", "Senegal", "Gambia", "Ghana", "Cote d'Ivoire", "Kenya"],
+                leads: [
+                    { n: "Marc Roussel", t: "Senior VP - Africa", d: "Continental Strategy" },
+                    { n: "District MD", t: "Managing Director EC&W", d: "West Africa Hub" }
+                ]
+            },
+            "sa": {
+                title: "Southern Africa District",
+                tag: "Industrial & Commodities",
+                countries: ["South Africa", "Namibia", "Botswana", "Mozambique", "Zambia"],
+                leads: [
+                    { n: "Salome Mareira", t: "Managing Director - Southern Africa", d: "Regional Operations" },
+                    { n: "Operations Lead", t: "Technical Quality Head", d: "Service Excellence" }
+                ]
+            }
+        };
+
+        function updateInfo(id) {
+            const item = db[id];
+            document.getElementById('intro').classList.add('hidden');
+            const c = document.getElementById('content');
+            c.classList.remove('hidden');
+            
+            document.getElementById('title').innerText = item.title;
+            document.getElementById('tag').innerText = item.tag;
+
+            document.getElementById('execs').innerHTML = item.leads.map(l => `
+                <div class="p-4 rounded-xl border border-gray-100 hover:border-red-100 hover:bg-red-50/30 transition-all">
+                    <p class="text-sm font-bold text-[#002B49]">${l.n}</p>
+                    <p class="text-[10px] font-bold text-blue-500 uppercase mt-1">${l.t}</p>
+                    <p class="text-[9px] text-gray-400 italic mt-1">${l.d}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('countries').innerHTML = item.countries.map(cn => `
+                <span class="text-[10px] font-bold px-3 py-1.5 bg-gray-50 text-gray-500 rounded-md border border-gray-100 hover:bg-[#002B49] hover:text-white transition-all">${cn}</span>
+            `).join('');
+
+            document.querySelectorAll('.region-path').forEach(p => p.classList.remove('active'));
+            document.getElementById('path-' + id).classList.add('active');
+        }
+    </script>
 </body>
 </html>
+
